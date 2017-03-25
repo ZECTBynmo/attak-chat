@@ -1,0 +1,21 @@
+{
+  "name": "attak-example",
+  "version": "0.0.1",
+  "description": "simple attak topology example",
+  "main": "topology.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/attak/attak.git"
+  },
+  "author": "ZECTBynmo (michael.vegeto@gmail.com)",
+  "license": "MIT",
+  "dependencies": {
+    "attak-processor": "git+https://git@github.com/attak/attak-processor.git",
+    "express": "^4.15.2",
+    "uuid": "^3.0.1",
+    "vogels": "^2.2.0"
+  }
+}
