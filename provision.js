@@ -2,7 +2,7 @@ var AWS = require('aws-sdk')
 
 module.exports = function(topology, config, callback) {
   var dynamo = new AWS.DynamoDB({
-    endpoint: config.aws.endpoints.dynamodb,
+    endpoint: config.aws.endpoints ? config.aws.endpoints.dynamodb : undefined,
     region: 'us-east-1'
   })
 
