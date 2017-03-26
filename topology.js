@@ -4,6 +4,7 @@ var fs = require('fs')
 var AWS = require('aws-sdk')
 var uuid = require('uuid')
 var Router = require('attak-router')
+var AWSMqtt = require('aws-mqtt')
 var queryChats = require('./query_chats')
 
 module.exports = {
@@ -14,14 +15,16 @@ module.exports = {
   processors: {
     endpoint: new Router({
       routes: {
-        'GET /': 'homeRedirect',
-        'GET /public*': 'staticServer',
+        'GET /': 'home',
         'GET /api/chats/recent': 'recentChats',
+        'GET /bundle.js': 'bundle',
       }
     }),
 
     chatHandler: function(event, context, callback) {
-      console.log("CHAT EVENT", event.body)
+      console.log("CHAT HANDLER", context.aws.endpoints.iot, event.body)
+
+      context.emit('messages', event.body)
 
       var dynamo = new AWS.DynamoDB({
         endpoint: context.aws.endpoints.dynamodb,
@@ -41,9 +44,25 @@ module.exports = {
       };
 
       dynamo.putItem(itemParams, function(err, data) {
-        console.log("DYNAMO RESULTS", err, data)
-        callback(null, {ok: true})
+        callback(err, data)
       })
+    },
+
+    chatEmitter: function(event, context, callback) {
+      console.log("CHAT EMITTER", event)
+      var iotData = new AWS.IotData({
+        endpoint: context.aws.endpoints.iot
+      })
+
+      var params = {
+        topic: '/chat',
+        payload: new Buffer(JSON.stringify(event)),
+        qos: 0
+      };
+
+      iotData.publish(params, function(err, results) {
+        callback(err, results)
+      });
     },
 
     recentChats: function(event, context, callback) {
@@ -53,27 +72,25 @@ module.exports = {
       })
     },
 
-    // Send users to the home page
-    homeRedirect: function(event, context, callback) {
-      callback(null, {
-        httpStatus: 301,
-        headers: {
-          Location: 'http://localhost:12369/public/index.html'
-        }
-      })
+    home: function(event, context, callback) {
+      callback(null, fs.readFileSync('./build/index.html').toString())
+    },
+
+    bundle: function(event, context, callback) {
+      callback(null, fs.readFileSync('./build/bundle.js').toString())
     },
 
     staticServer: function(event, context, callback) {
-      var filePath = event.path.split('public/')[1]
+      var filePath = event.path
 
       try {
-        callback(null, fs.readFileSync(`./public/${filePath}`).toString())
+        callback(null, fs.readFileSync(`./build/${filePath}`).toString())
       } catch (err) {
         callback(null, {httpStatus: 404})
       }
     }
   },
   streams: [
-    ['endpoint', 'testproc']
+    ['chatHandler', 'chatEmitter']
   ]
 }

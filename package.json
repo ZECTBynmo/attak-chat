@@ -14,8 +14,19 @@
   "license": "MIT",
   "dependencies": {
     "attak-processor": "git+https://git@github.com/attak/attak-processor.git",
+    "aws-mqtt": "^0.2.2",
+    "aws-sdk": "^2.32.0",
+    "aws-signature-v4": "^1.0.1",
+    "css-loader": "^0.27.3",
     "express": "^4.15.2",
+    "jQuery": "^1.7.4",
+    "location": "0.0.1",
+    "moment": "^2.18.1",
+    "pug": "^2.0.0-beta11",
+    "pug-loader": "^2.3.0",
+    "style-loader": "^0.16.0",
     "uuid": "^3.0.1",
-    "vogels": "^2.2.0"
+    "webpack": "^2.3.2",
+    "websocket-stream": "^3.3.3"
   }
 }

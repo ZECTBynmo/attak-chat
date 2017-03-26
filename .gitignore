@@ -3,3 +3,5 @@ node_modules/
 .env
 attak_runner.js
 public/config.js
+certs/
+build/
