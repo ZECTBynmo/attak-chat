@@ -1,8 +1,6 @@
 var AWS = require('aws-sdk')
 
 module.exports = function(config, channel, from, to, callback) {
-  console.log("CHAT QUERY", channel, from, to, config.aws.endpoints.dynamodb)
-
   AWS.config.update({
     region: "us-east-1",
     endpoint: config.aws.endpoints.dynamodb
@@ -23,13 +21,10 @@ module.exports = function(config, channel, from, to, callback) {
       ':to': to
     }
   }
-  
-  console.log("PARAMS", params)
 
   var items = []
   var queryExecute = function(callback) {
     docClient.query(params,function(err, result) {
-      console.log("QUERY RESULTS", err, result)
       if (err) {
         callback(err)
       } else {
