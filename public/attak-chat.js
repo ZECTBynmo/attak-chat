@@ -60,7 +60,7 @@ SigV4Utils.getSignedUrl = function(protocol, host, uri, service, region, accessK
     return requestUrl;
 }
 
-function initClient(requestUrl) {
+function initClient(requestUrl, callback) {
     console.log("INIT CLIENT", requestUrl)
     var clientId = String(Math.random()).replace('.', '');
     var client = new Paho.MQTT.Client(requestUrl, clientId);
@@ -77,8 +77,10 @@ function initClient(requestUrl) {
                 message.destinationName = '/chat';
                 console.log("MESSAGE", message);
                 client.send(message);
+                callback()
             } catch(err) {
                 console.log("CAUGHT ERROR", err)
+                callback(err)
             }
         },
         useSSL: true,
@@ -86,6 +88,7 @@ function initClient(requestUrl) {
         mqttVersion: 4,
         onFailure: function (err) {
             console.error('connect failed', err);
+            callback(err)
         }
     };
     client.connect(connectOptions);
@@ -193,7 +196,7 @@ var App = {
         });
 
         AWS.config.credentials.get(function(err) {
-            console.log("GOT FULL CREDS")
+            console.log("GOT FULL CREDS", err, AWS.config.credentials)
 
             var credentials = AWS.config.credentials
             
@@ -201,14 +204,15 @@ var App = {
                 'iotdevicegateway', 'us-east-1', 
                 credentials.accessKeyId, credentials.secretAccessKey, credentials.sessionToken)
 
-            initClient(requestUrl)
-            // App.setupWsClient()
-
             lambda = new AWS.Lambda({
-                endpoint: 'http://' + window.location.hostname + ':12368'
+                endpoint: window.location.hostname == 'localhost' ? 'http://localhost:12368' : undefined
             });
 
-            App.updateChat()
+            initClient(requestUrl, function(err) {
+                console.log("INIT DONE", err)
+                App.updateChat()
+            })
+            // App.setupWsClient()
         })
     },
 
@@ -327,13 +331,18 @@ var App = {
         }
 
         lambda.invoke(params, function(err, results) {
-            callback({messages: JSON.parse(results.Payload || '')})
+            console.log("GET DATA RESULTS", err, results)
+            if (results && results.Payload) {
+                callback({messages: JSON.parse(results.Payload || '')})
+            } else {
+                callback({messages: []})
+            }
         })
     },
 
     setStatusBar: function(text) {
         $('#status-bar').text(text);
-    }, 
+    },
 
     start: function() {
         // Set initial state to signed out
