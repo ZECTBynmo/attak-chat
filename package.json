@@ -1,7 +1,7 @@
 {
-  "name": "attak-example",
+  "name": "attak-chat",
   "version": "0.0.1",
-  "description": "simple attak topology example",
+  "description": "Simple but massively scalable chat application",
   "main": "topology.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
